@@ -1,0 +1,34 @@
+{
+  "name": "yt-playlist-downloader",
+  "version": "1.0.0",
+  "description": "Download playlists from youtube",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nxvhm/yt-playlist-downloader.git"
+  },
+  "keywords": [
+    "youtube",
+    "download",
+    "playlists",
+    "ytdl-core"
+  ],
+  "author": "Antoan Partadzhiev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nxvhm/yt-playlist-downloader/issues"
+  },
+  "homepage": "https://github.com/nxvhm/yt-playlist-downloader#readme",
+  "dependencies": {
+    "express": "4.17.2",
+    "express-handlebars": "6.0.2",
+    "nodemon": "2.0.15",
+    "socket.io": "4.4.1",
+    "ytdl-core": "4.9.2"
+  }
+}
