@@ -2,10 +2,15 @@ import express from 'express'
 import exphbs  from 'express-handlebars';
 import fs from 'fs';
 import ytdl from 'ytdl-core'
-import readline  from 'readline';
+import { Server } from "socket.io";
+import http from 'http';
+import crypto from 'crypto'
+import readline from 'readline';
+
 const app = express()
 const port = 3000
-
+const httpServer = http.createServer(app)
+const wss = new Server(httpServer);
 
 const hbs = exphbs.create({
     defaultLayout:'main',
@@ -17,6 +22,7 @@ const hbs = exphbs.create({
         } 
     }    
 });
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'))
@@ -24,34 +30,61 @@ app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
 app.set('views', './views');
 
-
-
 app.get('/', (req, res) => {
   res.render('index')
 })
 
+wss.on('connection', (socket) => {  
+  console.log('a user connected', socket.id);
+});
+
+
 app.post('/download', (req, res) => {
-    let url = req.body.url;
+    let url = req.body.url,
+        client = req.body.clientId;
+      
+    // wss.to(client).emit("hello", {t: 1, r: 23});
     const video = ytdl(url);
     let starttime;    
-    video.pipe(fs.createWriteStream('video.mp4'));    
+    let randomName = crypto.randomBytes(16).toString("hex")+'.mp4';
+    let path = `public/downloaded/${randomName}`;
+
+    video.pipe(fs.createWriteStream(path));    
+
     video.once('response', () => {
-        starttime = Date.now();
-      });
+      starttime = Date.now();
+    });
 
     video.on('progress', (chunkLength, downloaded, total) => {
+
         const percent = downloaded / total;
         const downloadedMinutes = (Date.now() - starttime) / 1000 / 60;
         const estimatedDownloadTime = (downloadedMinutes / percent) - downloadedMinutes;
+
         readline.cursorTo(process.stdout, 0);
-        process.stdout.write(`${(percent * 100).toFixed(2)}% downloaded `);
-        process.stdout.write(`(${(downloaded / 1024 / 1024).toFixed(2)}MB of ${(total / 1024 / 1024).toFixed(2)}MB)\n`);
-        process.stdout.write(`running for: ${downloadedMinutes.toFixed(2)}minutes`);
-        process.stdout.write(`, estimated time left: ${estimatedDownloadTime.toFixed(2)}minutes `);
-        readline.moveCursor(process.stdout, 0, -1);
-    });    
+
+        let progressMsg = {
+          percents: (percent * 100).toFixed(2),
+          downloaded: (downloaded / 1024 / 1024).toFixed(2),
+          total: (total / 1024 / 1024).toFixed(2),
+          remainig: estimatedDownloadTime.toFixed(2)
+        }
+
+        wss.to(client).emit('progress', progressMsg);
+
+        // process.stdout.write(`${(percent * 100).toFixed(2)}% downloaded `);
+        // process.stdout.write(`(${(downloaded / 1024 / 1024).toFixed(2)}MB of ${(total / 1024 / 1024).toFixed(2)}MB)\n`);
+        // process.stdout.write(`running for: ${downloadedMinutes.toFixed(2)}minutes`);
+        // process.stdout.write(`, estimated time left: ${estimatedDownloadTime.toFixed(2)}minutes `);
+        // readline.moveCursor(process.stdout, 0, -1);
+    });  
+    
+    video.on('end', () => {
+      res.send({success:1, error: 0, filename: randomName});
+    });
+
 })
 
-app.listen(port, () => {
+httpServer.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
 })

@@ -2,28 +2,40 @@
 <div class="card o-hidden border-0 shadow-lg my-5">
 <div class="card-body p-0">
     <div class="row">
-
-
     <div class="col-6 offset-3">
-            <div class="p-5">
-                <div class="text-center">
-                    <h1 class="h4 text-gray-900 mb-4">Youtube url to download</h1>
-                </div>
-                    <div class="form-group">
-                        <input type="text" id="url" class="form-control form-control-user" placeholder="Enter valid url">
-                    </div>
 
-                    <button class="btn btn-primary btn-user btn-block js-download">
-                        Download
-                    </button>
-                    <hr>
-
-                <hr>
+        <div class="p-5">
+            <div class="text-center">
+                <h1 class="h4 text-gray-900 mb-4">Youtube url to download</h1>
             </div>
+                <div class="form-group">
+                    <input type="text" id="url" class="form-control form-control-user" placeholder="Enter valid url">
+                </div>
+
+                <button class="btn btn-primary btn-user btn-block js-download">
+                    Download
+                </button>
+                <hr>
+
+            <hr>
+        </div>
+
+        <div class="text-center d-none" id="progress-container">
+            Downloaded: <span id="progress-downloaded">0</span>mb/ 
+            <span id="progress-total">0</span>mb
+            <div class="progress mb-5">
+                <div 
+                    id="progress-bar"
+                    class="progress-bar progress-bar-striped" 
+                    role="progressbar" 
+                    style="width: 0%" 
+                    aria-valuemax="100">
+                </div>
+            </div>
+        </div>
+
     </div>
     </div>
-
-
 </div>
 </div>
 </div>
@@ -32,11 +44,34 @@
 {{#section 'script'}}
 
 <script type="application/javascript">
+var socket = io();
 
+let $progressContainer = $('#progress-container');
+
+socket.on('connect', () => {
+    window.socketId = socket.id;
+})
+
+socket.on('hello', (data) => {
+    console.log('hello event', data);
+})
+
+socket.on('progress', data => {
+
+    if ($progressContainer.hasClass('d-none')) {
+        $progressContainer.removeClass('d-none');
+    }
+
+    document.getElementById('progress-downloaded').innerText =  data.downloaded;
+    document.getElementById('progress-total').innerText =  data.total;
+    document.getElementById('progress-bar').style['width'] = data.percents+'%';
+
+    console.log(data);
+})
 
 let postUrl = url => {
-    console.log(url);
-    $.post('/download', {url: url}).then(res => {
+    //console.log(url);
+    $.post('/download', {url: url, clientId: window.socketId}).then(res => {
         console.log(res);
     }).catch(err => {
         console.error(err);
@@ -54,6 +89,7 @@ $(document).ready(function() {
         postUrl(url);
     })
 })
+
 </script>
 
 {{/section}}
