@@ -2,22 +2,40 @@
 <div class="card o-hidden border-0 shadow-lg my-5">
 <div class="card-body p-0">
     <div class="row">
-    <div class="col-6 offset-3">
+    <div class="col-8 offset-2">
 
-        <div class="p-5">
-            <div class="text-center">
+        <div class="p-2">
+            <div class="text-center mt-3">
                 <h1 class="h4 text-gray-900 mb-4">Youtube url to download</h1>
             </div>
                 <div class="form-group">
                     <input type="text" id="url" class="form-control form-control-user" placeholder="Enter valid url">
                 </div>
 
-                <button class="btn btn-primary btn-user btn-block js-download">
-                    Download
+                <button class="btn btn-outline-primary btn-user btn-block js-get-info">
+                    Get Info
                 </button>
                 <hr>
 
             <hr>
+        </div>
+
+        <div class="p-1 text-center mb-5 d-none" id="video-info">
+            <h3 id="video-title">###</h3>
+            <img id="video-thumb" src="##" alt="">
+
+            <div class="form-group row mt-3">
+                <label for="format" class="col-12 col-form-label">
+                    Available Formats
+                </label>           
+                <div class="col-12">
+                    <select name="format" id="format-options" class="form-control">
+                    </select>
+                </div>     
+                <div class="col-sm-4 offset-4 mt-3">
+                    <button class="btn btn-block btn-outline-primary">Download</button>
+                </div>
+            </div>
         </div>
 
         <div class="text-center d-none" id="progress-container">
@@ -52,10 +70,6 @@ socket.on('connect', () => {
     window.socketId = socket.id;
 })
 
-socket.on('hello', (data) => {
-    console.log('hello event', data);
-})
-
 socket.on('progress', data => {
 
     if ($progressContainer.hasClass('d-none')) {
@@ -69,26 +83,63 @@ socket.on('progress', data => {
     console.log(data);
 })
 
-let postUrl = url => {
+let getInfo = url => {
     //console.log(url);
-    $.post('/download', {url: url, clientId: window.socketId}).then(res => {
-        console.log(res);
+    $.post('/get-info', {url: url, clientId: window.socketId}).then(res => {
+        console.log('res', res);
+        if (res.err) {
+            alert(res.msg);
+            return false;
+        }
+
+        if (res.success && res.data) {
+            $videoInfo = $('#video-info');
+
+            if ($videoInfo.hasClass('d-none')) {
+                $videoInfo.removeClass('d-none');
+            }
+
+            document.getElementById('video-title').innerText =  res.data.title;
+            document.getElementById('video-thumb').src =  res.data.thumbnail;
+
+            if (res.data.formats) {
+                clearCurrentFormats();
+                res.data.formats.forEach(format => {
+                    if (!format.hasAudio) {
+                        return;
+                    }
+                    addFormatOption(format);
+                })
+            }
+        }
+
     }).catch(err => {
         console.error(err);
     })
 }
 
 $(document).ready(function() {
-    $('.js-download').on('click', function() {
+    $('.js-get-info').on('click', function() {
         let url = $('#url').val();
         if (!url) {
             alert('Enter url');
             return false;
         }
 
-        postUrl(url);
+        getInfo(url);
     })
 })
+
+let addFormatOption = format => {
+    $('#format-options').append($('<option>', {
+        value: format.mimeType,
+        text: format.container + " " + format.audioQuality + " ("+format.mimeType+")"
+    }));
+}
+
+let clearCurrentFormats = () => {
+    $('#format-options option').remove();
+}
 
 </script>
 
