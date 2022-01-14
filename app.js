@@ -40,8 +40,7 @@ wss.on('connection', (socket) => {
 
 
 app.post('/get-info', (req, res) => {
-    let url = req.body.url,
-        client = req.body.clientId;
+    let url = req.body.url;
 
     try {
 
@@ -67,45 +66,46 @@ app.post('/get-info', (req, res) => {
 })
 
 app.post('/download', (req, res) => {
-    // const video = ytdl(url);
-    let starttime;    
-    let randomName = crypto.randomBytes(16).toString("hex")+'.mp4';
-    let path = `public/downloaded/${randomName}`;
+    const video = ytdl(req.url);
 
+    let client = req.body.clientId,
+      starttime,    
+      randomName = crypto.randomBytes(16).toString("hex")+'.mp4',
+      path = `public/downloaded/${randomName}`;
 
-    // video.pipe(fs.createWriteStream(path));    
+    video.pipe(fs.createWriteStream(path));    
 
-    // video.once('response', () => {
-    //   starttime = Date.now();
-    // });
+    video.once('response', () => {
+      starttime = Date.now();
+    });
 
-    // video.on('progress', (chunkLength, downloaded, total) => {
+    video.on('progress', (chunkLength, downloaded, total) => {
 
-    //     const percent = downloaded / total;
-    //     const downloadedMinutes = (Date.now() - starttime) / 1000 / 60;
-    //     const estimatedDownloadTime = (downloadedMinutes / percent) - downloadedMinutes;
+        const percent = downloaded / total;
+        const downloadedMinutes = (Date.now() - starttime) / 1000 / 60;
+        const estimatedDownloadTime = (downloadedMinutes / percent) - downloadedMinutes;
 
-    //     readline.cursorTo(process.stdout, 0);
+        readline.cursorTo(process.stdout, 0);
 
-    //     let progressMsg = {
-    //       percents: (percent * 100).toFixed(2),
-    //       downloaded: (downloaded / 1024 / 1024).toFixed(2),
-    //       total: (total / 1024 / 1024).toFixed(2),
-    //       remainig: estimatedDownloadTime.toFixed(2)
-    //     }
+        let progressMsg = {
+          percents: (percent * 100).toFixed(2),
+          downloaded: (downloaded / 1024 / 1024).toFixed(2),
+          total: (total / 1024 / 1024).toFixed(2),
+          remainig: estimatedDownloadTime.toFixed(2)
+        }
 
-    //     wss.to(client).emit('progress', progressMsg);
+        wss.to(client).emit('progress', progressMsg);
 
-    //     // process.stdout.write(`${(percent * 100).toFixed(2)}% downloaded `);
-    //     // process.stdout.write(`(${(downloaded / 1024 / 1024).toFixed(2)}MB of ${(total / 1024 / 1024).toFixed(2)}MB)\n`);
-    //     // process.stdout.write(`running for: ${downloadedMinutes.toFixed(2)}minutes`);
-    //     // process.stdout.write(`, estimated time left: ${estimatedDownloadTime.toFixed(2)}minutes `);
-    //     // readline.moveCursor(process.stdout, 0, -1);
-    // });  
+        // process.stdout.write(`${(percent * 100).toFixed(2)}% downloaded `);
+        // process.stdout.write(`(${(downloaded / 1024 / 1024).toFixed(2)}MB of ${(total / 1024 / 1024).toFixed(2)}MB)\n`);
+        // process.stdout.write(`running for: ${downloadedMinutes.toFixed(2)}minutes`);
+        // process.stdout.write(`, estimated time left: ${estimatedDownloadTime.toFixed(2)}minutes `);
+        // readline.moveCursor(process.stdout, 0, -1);
+    });  
     
-    // video.on('end', () => {
-    //   res.send({success:1, error: 0, filename: randomName});
-    // });
+    video.on('end', () => {
+      res.send({success:1, error: 0, filename: randomName});
+    });
 })
 
 
