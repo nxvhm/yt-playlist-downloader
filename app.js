@@ -66,27 +66,27 @@ app.post('/get-info', (req, res) => {
 })
 
 app.post('/download', (req, res) => {
-    const video = ytdl(req.url);
+    const video = ytdl(req.body.url, {filter: format => format.mimeType == req.body.mimeType});
 
-    let client = req.body.clientId,
+    let ext  = req.body.mimeType.split(';')[0].split('/')[1],
+      title  = req.body.title,
+      client = req.body.clientId,
       starttime,    
-      randomName = crypto.randomBytes(16).toString("hex")+'.mp4',
-      path = `public/downloaded/${randomName}`;
-
+      filename = title+'.'+ext,
+      path = `public/downloaded/${filename}`;
+      
     video.pipe(fs.createWriteStream(path));    
 
     video.once('response', () => {
       starttime = Date.now();
     });
-
     video.on('progress', (chunkLength, downloaded, total) => {
 
         const percent = downloaded / total;
         const downloadedMinutes = (Date.now() - starttime) / 1000 / 60;
         const estimatedDownloadTime = (downloadedMinutes / percent) - downloadedMinutes;
 
-        readline.cursorTo(process.stdout, 0);
-
+        // readline.cursorTo(process.stdout, 0);
         let progressMsg = {
           percents: (percent * 100).toFixed(2),
           downloaded: (downloaded / 1024 / 1024).toFixed(2),
@@ -104,7 +104,7 @@ app.post('/download', (req, res) => {
     });  
     
     video.on('end', () => {
-      res.send({success:1, error: 0, filename: randomName});
+      res.send({success:1, error: 0, filename});
     });
 })
 

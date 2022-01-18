@@ -33,7 +33,11 @@
                     </select>
                 </div>     
                 <div class="col-sm-4 offset-4 mt-3">
-                    <button class="btn btn-block btn-outline-primary">Download</button>
+                    <button 
+                        class="btn btn-block btn-outline-primary" 
+                        onclick="downloadFromSelectedFormat()">
+                        Download
+                    </button>
                 </div>
             </div>
         </div>
@@ -67,11 +71,10 @@ var socket = io();
 let $progressContainer = $('#progress-container');
 
 socket.on('connect', () => {
-    window.socketId = socket.id;
+    window.clientId = socket.id;
 })
 
 socket.on('progress', data => {
-
     if ($progressContainer.hasClass('d-none')) {
         $progressContainer.removeClass('d-none');
     }
@@ -85,7 +88,7 @@ socket.on('progress', data => {
 
 let getInfo = url => {
     //console.log(url);
-    $.post('/get-info', {url: url, clientId: window.socketId}).then(res => {
+    $.post('/get-info', {url: url, clientId: window.clientId}).then(res => {
         console.log('res', res);
         if (res.err) {
             alert(res.msg);
@@ -118,6 +121,20 @@ let getInfo = url => {
     })
 }
 
+let downloadFromSelectedFormat = () => {
+    let mimeType = $('#format-options option:selected').val();
+    $.post('/download', {
+        url: $('#url').val(),
+        mimeType,
+        clientId: window.clientId,
+        title: document.getElementById('video-title').innerText
+    }).then(res => {
+        console.log(res)
+    }).catch(err => {
+        console.err(error);
+    })
+}
+
 $(document).ready(function() {
     $('.js-get-info').on('click', function() {
         let url = $('#url').val();
@@ -140,6 +157,7 @@ let addFormatOption = format => {
 let clearCurrentFormats = () => {
     $('#format-options option').remove();
 }
+
 
 </script>
 
