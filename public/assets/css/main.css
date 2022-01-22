@@ -36,4 +36,20 @@ body {
     background-clip: border-box;
     border: 1px solid #e3e6f0;
     border-radius: .35rem;
-  }
+    margin-top: -5px;
+}
+
+.nav-pills .nav-link {
+    color: #fff;
+    background: #4e73df;
+    border-bottom: 1px solid gray;
+    box-shadow: 0px 1px 10px rgb(6, 79, 128)
+}
+
+
+
+.nav-pills .nav-link.active {
+    color: #4e73df;
+    background: #fff;
+    border: none;
+}

@@ -1,11 +1,11 @@
+import 'dotenv/config' 
 import express from 'express'
 import exphbs  from 'express-handlebars';
 import { Server } from "socket.io";
 import http from 'http';
 
 import { GetVideoInfo, DownloadVideoFromSelectedFormat } from './controllers/Video.js'
-
-
+import { GetPlaylistInfoForm, GetPlaylistContents } from './controllers/Playlist.js';
 const app = express()
 const port = 3000
 const httpServer = http.createServer(app)
@@ -32,6 +32,9 @@ app.set('views', './app/views');
 app.get('/', (req, res) => {
   res.render('index')
 })
+
+app.get('/playlist', GetPlaylistInfoForm)
+app.post('/playlist-info', GetPlaylistContents)
 
 wss.on('connection', (socket) => {  
   console.log('a user connected', socket.id);
