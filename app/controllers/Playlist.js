@@ -3,7 +3,7 @@ import 'dotenv/config'
 export const GetPlaylistInfoForm = (req, res) => {
     return res.render('playlist')
 }
-//https://youtube.googleapis.com/youtube/v3/playlistItems?playlistId=PL1IU4H9Dvninizk2jajFt_J9GuCH_fTIX&maxResults=50&part=snippet&key=AIzaSyBkIP_kN-mjfAHu4OwzwXu_C3Bnx0bYNk0
+//https://youtube.googleapis.com/youtube/v3/playlistItems?playlistId=PL1IU4H9Dvninizk2jajFt_J9GuCH_fTIX&maxResults=50&part=snippet&key=
 export const GetPlaylistContents = (req, res) => {
 
     let url;
